@@ -1,0 +1,44 @@
+name: Firmware Dumper
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  LINK: ${{ github.event.inputs.link }}
+  ORG: hopireika-dump
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  TG_CHAT: "@hopireika_dump"
+  TG_TOKEN: ${{ secrets.TG_TOKEN }}
+
+jobs:
+  dumper:
+      runs-on: ubuntu-latest
+
+      steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 1024
+          overprovision-lvm: true
+          remove-dotnet: true
+          remove-android: true
+          remove-codeql: true
+          remove-haskell: true
+          remove-docker-images: true
+      - uses: actions/checkout@v3
+      - name: Start dumping firmware
+        run: |
+             git clone --depth=1 https://github.com/Hopireika/DumprX
+             cd DumprX
+             ./setup.sh
+             git config --global user.name "Hoppless"
+             git config --global user.email "hoppless@proton.me"
+             echo "$GH_TOKEN" > .github_token
+             echo "$ORG" > .github_orgname
+             echo "$TG_CHAT" > .tg_chat
+             echo "$TG_TOKEN" > .tg_token
+             ./dumper.sh $(< ../URL.txt)
